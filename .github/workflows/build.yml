@@ -1,0 +1,113 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+# Varsayılan olarak yalnızca okuma; yazma izni sadece yayın işine verilir.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Bağımlılıkları kur
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Testler
+        run: pytest -q
+      - name: Bağımlılıklarda bilinen açık taraması
+        run: |
+          pip install pip-audit
+          pip-audit --strict --progress-spinner off
+
+  build:
+    name: build (${{ matrix.os }})
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: ExcelEncryptor-windows
+          - os: macos-latest
+            artifact: ExcelEncryptor-macos
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Bağımlılıkları kur
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: macOS ikonu üret
+        if: runner.os == 'macOS'
+        run: bash packaging/make_icns.sh
+
+      - name: Paketle
+        run: pyinstaller packaging/ExcelEncryptor.spec --noconfirm
+
+      - name: Windows çıktısını doğrula
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "dist/ExcelEncryptor.exe")) { throw "exe üretilmedi" }
+          $size = (Get-Item "dist/ExcelEncryptor.exe").Length / 1MB
+          Write-Host ("ExcelEncryptor.exe {0:N1} MB" -f $size)
+          if ($size -lt 5) { throw "exe şüpheli derecede küçük" }
+
+      - name: macOS çıktısını doğrula
+        if: runner.os == 'macOS'
+        run: |
+          test -d "dist/Excel Encryptor.app" || { echo ".app üretilmedi"; exit 1; }
+          test -x "dist/Excel Encryptor.app/Contents/MacOS/Excel Encryptor"
+          ( cd dist && zip -qry "Excel Encryptor-macos.zip" "Excel Encryptor.app" )
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            dist/ExcelEncryptor.exe
+            dist/Excel Encryptor-macos.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: yayınla
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # yalnızca burada gerekli
+    steps:
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          path: artifacts
+      - name: SHA-256 özetleri
+        run: |
+          cd artifacts
+          find . -type f \( -name '*.exe' -o -name '*.zip' \) -exec sha256sum {} \; | tee SHA256SUMS.txt
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          files: |
+            artifacts/**/*.exe
+            artifacts/**/*.zip
+            artifacts/SHA256SUMS.txt
+          generate_release_notes: true

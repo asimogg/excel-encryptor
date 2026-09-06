@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest>=8.0
+pyinstaller>=6.11
+pillow>=10.0              # yalnızca assets/make_icon.py için

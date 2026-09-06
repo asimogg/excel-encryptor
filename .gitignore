@@ -1,0 +1,28 @@
+# Sanal ortamlar / derleme çıktıları
+.venv/
+venv/
+build/
+dist/
+*.spec.bak
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# PyInstaller ara çıktıları
+packaging/build/
+packaging/dist/
+
+# ÖNEMLİ: gerçek veri asla depoya girmesin
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+!tests/fixtures/*.xlsx
+
+# İşletim sistemi / editör
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+assets/icon.icns

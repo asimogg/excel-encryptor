@@ -1,0 +1,7 @@
+# Çalışma zamanı bağımlılıkları.
+# Alt sınırlar güvenlik yamalarını zorunlu kılar; üst sınır yok ki
+# yeni güvenlik güncellemeleri engellenmesin.
+openpyxl>=3.1.5
+cryptography>=45.0.7      # bilinen CVE'lerin kapandığı ilk seri
+tksheet>=7.0
+defusedxml>=0.7.1         # openpyxl'i kötü niyetli XML'e karşı sertleştirir
