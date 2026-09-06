@@ -18,14 +18,24 @@ En son sürümü [Releases](../../releases/latest) sayfasından indirin:
 | Dosya | Platform | Nasıl çalıştırılır |
 |---|---|---|
 | `ExcelEncryptor.exe` | Windows 10/11 (64-bit) | Çift tıklayın. Kurulum ve Python gerekmez. |
-| `Excel Encryptor-macos.zip` | macOS 12+ (Apple Silicon) | Açın, `.app`'i Uygulamalar'a sürükleyin, çift tıklayın. |
+| `ExcelEncryptor-macos.zip` | macOS 12+ (Apple Silicon) | Açın, `.app`'i Uygulamalar'a sürükleyin, çift tıklayın. |
 
-İlk açılışta işletim sistemi uyarır (dosyalar kod imzalı değil):
+İlk açılışta işletim sistemi uyarır — dosyalar **kod imzalı değil** (Apple Developer
+ve Windows imzalama sertifikaları ücretli):
 
 - **Windows:** SmartScreen → *Daha fazla bilgi* → *Yine de çalıştır*
-- **macOS:** uygulamaya sağ tık → *Aç* → açılan pencerede yine *Aç*
+- **macOS 13–14:** uygulamaya sağ tık → *Aç* → açılan pencerede yine *Aç*
+- **macOS 15+:** bir kez çift tıklayın (engellenir), sonra
+  *Sistem Ayarları → Gizlilik ve Güvenlik* → aşağıdaki *Yine de Aç* düğmesi
 
-İndirdiğinizi doğrulamak isterseniz her sürümde `SHA256SUMS.txt` yayınlanıyor.
+İmzasız yazılıma güvenmek istemiyorsanız kaynak koddan kendiniz derleyebilirsiniz
+(bkz. [Geliştirme](#geliştirme)). İndirdiğiniz dosyanın bozulmadığını doğrulamak
+için her sürümde `SHA256SUMS.txt` yayınlanıyor:
+
+```bash
+shasum -a 256 ExcelEncryptor-macos.zip     # macOS
+certutil -hashfile ExcelEncryptor.exe SHA256   # Windows
+```
 
 ## Kullanım
 

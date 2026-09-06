@@ -78,14 +78,14 @@ jobs:
         run: |
           test -d "dist/Excel Encryptor.app" || { echo ".app üretilmedi"; exit 1; }
           test -x "dist/Excel Encryptor.app/Contents/MacOS/Excel Encryptor"
-          ( cd dist && zip -qry "Excel Encryptor-macos.zip" "Excel Encryptor.app" )
+          ( cd dist && zip -qry ExcelEncryptor-macos.zip "Excel Encryptor.app" )
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.artifact }}
           path: |
             dist/ExcelEncryptor.exe
-            dist/Excel Encryptor-macos.zip
+            dist/ExcelEncryptor-macos.zip
           if-no-files-found: error
           retention-days: 30
 
